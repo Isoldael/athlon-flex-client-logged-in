@@ -9,7 +9,7 @@ class Filter(BaseModel):
     def to_request_params(self) -> dict:
         """Return the filter as request parameters, to be provied to api request"""
         return {
-            f"Filters.{key}": value
+            f"Filters.{key}": str(value)
             for key, value in self.model_dump(exclude_none=True).items()
         }
 

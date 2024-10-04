@@ -40,3 +40,7 @@ class VehicleClusters(BaseModel):
     def __iter__(self):
         """Iterate over the vehicle clusters."""
         return iter(self.vehicle_clusters)
+
+    def __getitem__(self, index):
+        """Get the vehicle cluster at the given index."""
+        return self.vehicle_clusters[index]

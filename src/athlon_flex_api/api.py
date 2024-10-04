@@ -1,10 +1,11 @@
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
-from functools import cached_property
-from typing import ClassVar
+from typing import Awaitable, ClassVar, TypeVar
 
-from requests import Session
+from aiohttp import ClientSession
+from async_property import async_cached_property
 
 from athlon_flex_api.models.filters.vehicle_cluster_filter import VehicleClusterFilter
 from athlon_flex_api.models.filters.vehicle_filter import (
@@ -14,6 +15,8 @@ from athlon_flex_api.models.profile import Profile
 from athlon_flex_api.models.vehicle import Vehicles
 from athlon_flex_api.models.vehicle_cluster import VehicleClusters
 
+T = TypeVar("T")
+
 
 @dataclass
 class AthlonFlexApi:
@@ -21,7 +24,7 @@ class AthlonFlexApi:
 
     email: str
     password: str
-    session: Session = field(init=False)
+    session: ClientSession = field(init=False)
 
     BASE_URL: ClassVar[str] = "https://flex.athlon.com/api/v1"
 
@@ -30,10 +33,13 @@ class AthlonFlexApi:
 
         Create a new session and login to the API.
         """
-        self.session = Session()
-        self._login()
+        self.await_(self._init())
 
-    def _login(self) -> None:
+    async def _init(self) -> None:
+        self.session = ClientSession()
+        await self._login()
+
+    async def _login(self) -> None:
         """Login to the Athlon Flex API.
 
         Uses username and password to login to the API.
@@ -41,7 +47,7 @@ class AthlonFlexApi:
         """
         endpoint = "MemberLogin"
 
-        response = self.session.post(
+        response = await self.session.post(
             self._url(endpoint),
             json={"username": self.email, "password": self.password},
         )
@@ -50,17 +56,17 @@ class AthlonFlexApi:
     def _url(self, endpoint: str) -> str:
         return f"{self.BASE_URL}/{endpoint}"
 
-    @cached_property
-    def profile(self) -> Profile:
+    @async_cached_property
+    async def profile(self) -> Profile:
         """Get the profile of the user."""
         endpoint = "MemberProfile"
 
-        response = self.session.get(self._url(endpoint))
+        response = await self.session.get(self._url(endpoint))
         response.raise_for_status()
 
-        return Profile(**response.json())
+        return Profile(**await response.json())
 
-    def vehicle_clusters(
+    async def vehicle_clusters(
         self,
         filter: VehicleClusterFilter | None = None,
     ) -> VehicleClusters:
@@ -70,15 +76,15 @@ class AthlonFlexApi:
         If a filter is provided, result is filtered based on the filter.
             There exists a special NoFilter subclass to load all clusters.
         """
-        filter = filter or VehicleClusterFilter.from_profile(self.profile)
+        filter = filter or VehicleClusterFilter.from_profile(await self.profile)
         endpoint = "VehicleCluster"
-        response = self.session.get(
+        response = await self.session.get(
             self._url(endpoint), params=filter.to_request_params()
         )
         response.raise_for_status()
-        return VehicleClusters(vehicle_clusters=response.json())
+        return VehicleClusters(vehicle_clusters=await response.json())
 
-    def vehicles(
+    async def vehicles_of_make_and_model(
         self,
         make: str,
         model: str,
@@ -90,22 +96,35 @@ class AthlonFlexApi:
         If a filter is provided, result is filtered based on the filter.
             There exists a special NoFilter subclass to load all vehicles.
         """
-        filter = filter or VehicleFilter.from_profile(make, model, self.profile)
+        filter = filter or VehicleFilter.from_profile(make, model, await self.profile)
         endpoint = "VehicleVariation"
-        response = self.session.get(
+        response = await self.session.get(
             self._url(endpoint), params=filter.to_request_params()
         )
         response.raise_for_status()
-        return Vehicles(make=make, model=model, vehicles=response.json())
+        return Vehicles(make=make, model=model, vehicles=await response.json())
 
-    def all_vehicles(
+    async def vehicles(
         self,
-        vehicle_cluster_filter: VehicleClusterFilter,
-        vehicle_filter: VehicleFilter,
-    ) -> Vehicles:
+        vehicle_cluster_filter: VehicleClusterFilter | None = None,
+    ) -> list[Vehicles]:
         """Todo: Load all vehicles of all clusters.
 
         After loading the clusters, load all vehicles of each cluster in parallel.
         Use aiohttp instead of requests
         """
-        pass
+        clusters = await self.vehicle_clusters(vehicle_cluster_filter)
+        vehicles = await asyncio.gather(
+            *[
+                self.vehicles_of_make_and_model(cluster.make, cluster.model)
+                for cluster in clusters
+            ]
+        )
+        return vehicles
+
+    def await_(self, coro: Awaitable[T]) -> T:
+        return asyncio.get_event_loop().run_until_complete(coro)
+
+    def __del__(self):
+        """Automatically close the session when the object is garbage collected."""
+        self.await_(self.session.close())

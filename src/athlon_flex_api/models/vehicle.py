@@ -28,16 +28,15 @@ class Vehicle(BaseModel):
         return f"{self.make} {self.model} {self.type} {self.modelYear}"
 
 
+# todo: include vehicles in VehicleClusters instead
 class Vehicles(BaseModel):
     """Collection of vehicles of a specific make and model."""
 
-    make: str
-    model: str
     vehicles: list[Vehicle]
 
     def __str__(self):
         """Return the string representation of the vehicles."""
-        msg = f"Vehicles of type {self.make} {self.model}:"
+        msg = "Vehicles:"
         separator = "\n" + "-" * len(msg) + "\n"
         return f"{msg}{separator}{"\n".join(str(vehicle) for vehicle in self.vehicles)}"
 
