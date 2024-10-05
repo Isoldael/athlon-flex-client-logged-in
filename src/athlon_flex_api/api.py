@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import asyncio
+from functools import cached_property
 from typing import Any, Awaitable, Callable, ClassVar, TypeVar
 
 import nest_asyncio
@@ -122,16 +123,6 @@ class AthlonFlexApi(BaseModel):
         else:
             logger.warning("Could not set tax rate cookie, tax rate not found.")
 
-    @async_cached_property
-    async def profile(self) -> Profile:
-        """Get the profile of the user."""
-        endpoint = "MemberProfile"
-
-        response = await self.session.get(self._url(endpoint), verify_ssl=False)
-        response.raise_for_status()
-
-        return Profile(**await response.json())
-
     async def tax_rates_async(self) -> TaxRates:
         """Load the tax rates registered in Athlon Flex."""
         endpoint = "TaxRates"
@@ -160,7 +151,7 @@ class AthlonFlexApi(BaseModel):
             VehicleClusters: A collection of vehicle clusters.
 
         """
-        filter_ = filter_ or VehicleClusterFilter.from_profile(await self.profile)
+        filter_ = filter_ or VehicleClusterFilter.from_profile(await self.profile_async)
         endpoint = "VehicleCluster"
         response = await self.session.get(
             self._url(endpoint),
@@ -176,6 +167,21 @@ class AthlonFlexApi(BaseModel):
                 ],
             ),
         )
+
+    @cached_property
+    def profile(self) -> Profile:
+        """Synchronously get the profile of the user."""
+        return self._await(self.profile_async)
+
+    @async_cached_property
+    async def profile_async(self) -> Profile:
+        """Get the profile of the user."""
+        endpoint = "MemberProfile"
+
+        response = await self.session.get(self._url(endpoint), verify_ssl=False)
+        response.raise_for_status()
+
+        return Profile(**await response.json())
 
     async def _apply_detail_level(
         self,
@@ -223,7 +229,7 @@ class AthlonFlexApi(BaseModel):
         filter_ = filter_ or VehicleFilter.from_profile(
             make,
             model,
-            await self.profile,
+            await self.profile_async,
         )
         endpoint = "VehicleVariation"
         response = await self.session.get(
@@ -248,7 +254,7 @@ class AthlonFlexApi(BaseModel):
         endpoint = "Vehicle"
         response = await self.session.get(
             self._url(endpoint),
-            params=vehicle.details_request_params(await self.profile),
+            params=vehicle.details_request_params(await self.profile_async),
             verify_ssl=False,
         )
         response.raise_for_status()
