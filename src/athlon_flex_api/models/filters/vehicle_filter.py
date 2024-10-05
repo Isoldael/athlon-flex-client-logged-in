@@ -1,8 +1,16 @@
+"""A VehicleFilter is used to filter what Vehicles should be loaded from the API.
+
+In most cases, this filter is created based on the user's profile settings.
+"""
+
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from athlon_flex_api.models.filters.filter import Filter
-from athlon_flex_api.models.profile import Profile
-from athlon_flex_api.models.vehicle import Vehicle
+
+if TYPE_CHECKING:
+    from athlon_flex_api.models.profile import Profile
 
 
 class VehicleFilter(Filter):
@@ -43,5 +51,3 @@ class VehicleFilter(Filter):
 
 class NoFilter(VehicleFilter):
     """Empty filter for loading all items."""
-
-    pass

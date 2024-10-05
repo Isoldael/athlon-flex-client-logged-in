@@ -1,3 +1,5 @@
+"""The TaxRate model is used by Athlon to compute the net costs of a vehicle."""
+
 from __future__ import annotations
 
 import re
@@ -8,7 +10,25 @@ from athlon_flex_api import logger
 
 
 class TaxRate(BaseModel):
-    """Tax rate model."""
+    """Tax rate model.
+
+    Athlon uses tax rates to compote the (estimate) net costs of a vehicle.
+    The API client optionally consumes the (approximate) gross yearly income
+    of the user, and then uses it to select the correct tax rate. The tax rate
+    is stored in the cookies, and the API will then include the net prices
+    in its response.
+
+    Attributes:
+        label: str The label of the tax rate.
+            Used to extract the following information about the tax rate:
+            - Whether loonheffingskorting is applied or not.
+            - The lower and upper bounds of the tax rate.
+            Extraction is done using regex.
+            Example label:
+                "Met loonheffingskorting jaarinkomen € 75.519 t/m € 134.929"
+        percentage: float The percentage of the tax rate.
+
+    """
 
     label: str
     percentage: float
@@ -17,15 +37,14 @@ class TaxRate(BaseModel):
     def bounds(self) -> tuple[float, float]:
         """Return the lower and upper bounds of the tax rate.
 
-        Extract the values using regex.
-        Example label: "Met loonheffingskorting jaarinkomen € 75.519 t/m € 134.929"
-        If a single value is found, the upper bound is set to infinity.
-        If no values are found, both bounds are set to 0.0 (an income will never match).
+        If a single value v is found, return (v, inf)
+        If no values are found, both bounds are set to 0.0
+            an income will never match this rate.
         """
         pattern = r"€ (\d+(?:\.\d+)?)"
         matches = re.findall(pattern, self.label)
         matches = [match.replace(".", "") for match in matches]
-        if matches and 0 < len(matches) <= 2:
+        if matches and 0 < len(matches) <= 2:  # noqa: PLR2004
             if len(matches) == 1:
                 lower_bound = matches[0]
                 return float(lower_bound), float("inf")
@@ -37,7 +56,7 @@ class TaxRate(BaseModel):
         """Check if the tax rate is for the given income.
 
         Args:
-            income (float): Check whether this income is within the bounds of the tax rate.
+            income (float): Check whether this income is within the bounds of the rate.
             apply_loonheffingskorting (bool): Check whether the label indicates
                 loonheffingskorting or not
 

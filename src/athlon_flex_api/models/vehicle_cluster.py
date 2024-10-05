@@ -1,10 +1,15 @@
+"""A VehicleCluster defines a set of vehicles of a specific make and model.
+
+Vehicle clusters are shown on the showroom of the web app.
+"""
+
 from __future__ import annotations
 
 from enum import IntEnum
 
 from pydantic import BaseModel, Field
 
-from athlon_flex_api.models.vehicle import Vehicle
+from athlon_flex_api.models.vehicle import Vehicle  # noqa: TCH001
 
 
 class VehicleCluster(BaseModel):
@@ -30,7 +35,10 @@ class VehicleCluster(BaseModel):
     vehicles: list[Vehicle] | None = Field(init=False, optional=True, default=None)
 
     def __str__(self) -> str:
-        """Return the string representation of the vehicle cluster."""
+        """Return the string representation of the vehicle cluster.
+
+        Shows the make and model, and all vehicles in the cluster (if loaded).
+        """
         msg = f"{self.make} {self.model}"
         if self.vehicles:
             msg = (
@@ -45,10 +53,14 @@ class VehicleClusters(BaseModel):
     vehicle_clusters: list[VehicleCluster]
 
     def __str__(self) -> str:
-        """Return the string representation of the vehicle clusters."""
-        msg = "Vehicle Clusters:"
-        separator = "\n" + "-" * len(msg) + "\n"
-        return f"{msg}{separator}{"\n".join(str(vehicle) for vehicle in self.vehicle_clusters)}"
+        """Return the string representation of the vehicle clusters.
+
+        Show one cluster per line.
+        """
+        header = "Vehicle Clusters:"
+        separator = "\n" + "-" * len(header) + "\n"
+        vehicles = "\n".join(str(vehicle) for vehicle in self.vehicle_clusters)
+        return f"{header}{separator}{vehicles}"
 
     def __iter__(self) -> iter[VehicleCluster]:
         """Iterate over the vehicle clusters."""
@@ -62,7 +74,8 @@ class VehicleClusters(BaseModel):
 class DetailLevel(IntEnum):
     """The level of detail to include in a VehicleCluster object.
 
-    More detail means more requests.
+    More detail means more requests. Used in the API to determine
+    what to load.
 
     Attributes:
         CLUSTER_ONLY: Only include the cluster details, do not load the vehicles.

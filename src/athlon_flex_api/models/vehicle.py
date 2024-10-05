@@ -1,9 +1,18 @@
+"""A Vehicle represents a specific instance of a vehicle in a VehicleCluster.
+
+Vehicles are shown in the web app when a VehicleCluster is selected.
+"""
+
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
 from athlon_flex_api.models.filters.filter import Filter
-from athlon_flex_api.models.profile import Profile
+
+if TYPE_CHECKING:
+    from athlon_flex_api.models.profile import Profile
 
 
 class Vehicle(BaseModel):
@@ -33,7 +42,14 @@ class Vehicle(BaseModel):
         additionPercentage: float
 
     class Pricing(BaseModel):
-        """Vehicle pricing."""
+        """Vehicle pricing.
+
+        Attributes:
+            netCostPerMonthInEuro: float | None = None
+                Only if the tax rate cookies are set.
+                    See AthlonFlexApi._set_tax_rate_cookie
+
+        """
 
         fiscalValueInEuro: float
         basePricePerMonthInEuro: float
@@ -42,10 +58,13 @@ class Vehicle(BaseModel):
         fuelPricePerKm: float
         contributionInEuro: float
         expectedFuelCostPerMonthInEuro: float
-        netCostPerMonthInEuro: float
+        netCostPerMonthInEuro: float | None = None
 
     class Option(BaseModel):
-        """Vehicle option."""
+        """Vehicle option.
+
+        Example: Trekhaak.
+        """
 
         id: str
         externalId: str
@@ -72,11 +91,14 @@ class Vehicle(BaseModel):
     options: list[Option] | None = None
 
     def __str__(self) -> str:
-        """Return the string representation of the vehicle."""
+        """Return the string representation of the vehicle.
+
+        Includes the make, model, type, and model year.
+        """
         return f"{self.make} {self.model} {self.type} {self.modelYear}"
 
     def details_request_params(self, profile: Profile) -> dict[str, str | int]:
-        """Return the request parameters for loading the details."""
+        """Return the request parameters for loading the details of the vehicle."""
         bool_to_str = Filter.bool_to_str
         return {
             "Segment": "Cars",
@@ -89,3 +111,10 @@ class Vehicle(BaseModel):
             "IncludeFuelCostsInPricing": bool_to_str(profile.includeFuelCostsInPricing),
             "ActualBudgetPerMonth": profile.budget.actualBudgetPerMonth,
         }
+
+    @property
+    def uri(self) -> str:
+        """The URI of the vehicle, to open the vehicle in the web app."""
+        return (
+            f"https://flex.athlon.com/app/showroom/{self.make}/{self.model}/{self.id}"
+        )

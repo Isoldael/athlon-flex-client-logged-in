@@ -37,7 +37,9 @@ target-version = "py38"
 [lint]
 select = ["ALL"]
 ignore = [
-    "N815" # Mixed case variable. Allow format returned by API
+    "N815", # Mixed case variable. Allow format returned by API
+    "D203", # one-blank-line-before-class
+    "D213" # multi-line-summary-second-line
 ] 
 
 # Allow fix for all enabled rules (when `--fix`) is provided.

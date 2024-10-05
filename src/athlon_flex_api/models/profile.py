@@ -1,13 +1,26 @@
+"""The Profile model shows information about the user."""
+
+from __future__ import annotations
+
 from pydantic import BaseModel
 
 
 class Profile(BaseModel):
+    """The profile model shows information about the user."""
+
     class RelationshipManager(BaseModel):
+        """The relationship manager of the user.
+
+        Usually indicates contact details of the employer of the user.
+        """
+
         name: str
         email: str
         phone: str
 
     class Budget(BaseModel):
+        """Indicates all budget information of the user."""
+
         actualBudgetPerMonth: int
         maxBudgetPerMonth: int
         normBudgetPerMonth: int
@@ -22,6 +35,8 @@ class Profile(BaseModel):
         holidayCarRaiseAllowed: bool
 
     class Address(BaseModel):
+        """The address of the user."""
+
         street: str
         houseNumber: str
         houseNumberAddendum: str
@@ -29,6 +44,8 @@ class Profile(BaseModel):
         city: str
 
     class CurrentReservation(BaseModel):
+        """The current reservation of the user, if any."""
+
         externalId: str
         startedAtUtc: str
         vehicleId: str
@@ -60,7 +77,7 @@ class Profile(BaseModel):
     pendingHolidayCarRaise: bool
     deliveryAddress: Address
     officialAddress: Address
-    currentReservation: CurrentReservation
+    currentReservation: CurrentReservation | None = None
     firstReservationAllowedFromUtc: str
     firstDeliveryAllowedFromUtc: str
     canOrderBike: bool

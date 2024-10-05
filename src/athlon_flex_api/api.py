@@ -1,7 +1,9 @@
+"""Athlon Flex API client."""
+
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Awaitable, ClassVar, TypeVar
+from typing import Any, Awaitable, Callable, ClassVar, TypeVar
 
 from aiohttp import ClientSession
 from async_property import async_cached_property
@@ -25,6 +27,10 @@ T = TypeVar("T")
 
 class AthlonFlexApi(BaseModel):
     """Athlon Flex API client.
+
+    Exposes functions to load the profile, vehicle clusters, vehicles & vehicle details.
+    Uses the aiohttp library to interact with the API. All _async methods can also be
+    accessed synchronously by removing the '_async' suffix.
 
     Attributes:
         email: str The email of the user.
@@ -61,7 +67,7 @@ class AthlonFlexApi(BaseModel):
 
         Create a new session and login to the API.
         """
-        self.await_(self._init())
+        self._await(self._init())
 
     async def _init(self) -> None:
         """Initialize the API client.
@@ -88,13 +94,15 @@ class AthlonFlexApi(BaseModel):
         response.raise_for_status()
 
     def _url(self, endpoint: str) -> str:
-        return f"{self.BASE_URL}/{endpoint}"
+        result = f"{self.BASE_URL}/{endpoint}"
+        logger.debug("Calling %s", result)
+        return result
 
     async def _set_tax_rate_cookie(self) -> None:
         """Set the tax rate cookie in the session."""
         if not self.gross_yearly_income:
             return
-        tax_rates = await self.tax_rates()
+        tax_rates = await self.tax_rates_async()
         if tax_rate := tax_rates.rate_of_income(
             self.gross_yearly_income,
             apply_loonheffingskorting=self.apply_loonheffingskorting,
@@ -123,7 +131,7 @@ class AthlonFlexApi(BaseModel):
 
         return Profile(**await response.json())
 
-    async def tax_rates(self) -> TaxRates:
+    async def tax_rates_async(self) -> TaxRates:
         """Load the tax rates registered in Athlon Flex."""
         endpoint = "TaxRates"
         response = await self.session.get(
@@ -134,7 +142,7 @@ class AthlonFlexApi(BaseModel):
         response.raise_for_status()
         return TaxRates(tax_rates=[TaxRate(**rate) for rate in await response.json()])
 
-    async def vehicle_clusters(
+    async def vehicle_clusters_async(
         self,
         filter_: VehicleClusterFilter | None = None,
         detail_level: DetailLevel = DetailLevel.INCLUDE_VEHICLE_DETAILS,
@@ -165,11 +173,13 @@ class AthlonFlexApi(BaseModel):
                     self._apply_detail_level(VehicleCluster(**cluster), detail_level)
                     for cluster in await response.json()
                 ],
-            )
+            ),
         )
 
     async def _apply_detail_level(
-        self, cluster: VehicleCluster, detail_level: DetailLevel
+        self,
+        cluster: VehicleCluster,
+        detail_level: DetailLevel,
     ) -> VehicleCluster:
         """Apply the detail level to the cluster, by loading more data if necessary.
 
@@ -182,14 +192,14 @@ class AthlonFlexApi(BaseModel):
 
         """
         if detail_level >= DetailLevel.INCLUDE_VEHICLES and not cluster.vehicles:
-            cluster.vehicles = await self.vehicles(cluster)
+            cluster.vehicles = await self.vehicles_async(cluster)
         if detail_level >= DetailLevel.INCLUDE_VEHICLE_DETAILS:
             cluster.vehicles = await asyncio.gather(
-                *[self.vehicle_details(vehicle) for vehicle in cluster.vehicles]
+                *[self.vehicle_details_async(vehicle) for vehicle in cluster.vehicles],
             )
         return cluster
 
-    async def vehicles(
+    async def vehicles_async(
         self,
         vehicle_cluster: VehicleCluster,
         filter_: VehicleFilter | None = None,
@@ -222,7 +232,7 @@ class AthlonFlexApi(BaseModel):
         response.raise_for_status()
         return [Vehicle(**vehicle) for vehicle in await response.json()]
 
-    async def vehicle_details(self, vehicle: Vehicle) -> Vehicle:
+    async def vehicle_details_async(self, vehicle: Vehicle) -> Vehicle:
         """Load all details of a vehicle.
 
         Args:
@@ -242,9 +252,28 @@ class AthlonFlexApi(BaseModel):
         response.raise_for_status()
         return Vehicle(**await response.json())
 
-    def await_(self, coro: Awaitable[T]) -> T:
+    def __getattr__(self, name: str) -> Callable:
+        """Allow synchronous access to async methods.
+
+        Any method that ends with '_async' can also be accessed
+        synchronously by removing the '_async' suffix.
+        """
+        if name.endswith("_async"):
+            return getattr(super(), name)
+        async_name = f"{name}_async"
+        if hasattr(self, async_name):
+            async_def = getattr(self, async_name)
+        else:
+            return super().__getattr__(name)
+        return lambda *args, **kwargs: self._await(async_def(*args, **kwargs))
+
+    def _await(self, coro: Awaitable[T]) -> T:
+        """Run the coroutine in the event loop.
+
+        This makes it possible to run async methods synchronously.
+        """
         return asyncio.get_event_loop().run_until_complete(coro)
 
-    def __del__(self):
+    def __del__(self) -> None:
         """Automatically close the session when the object is garbage collected."""
-        self.await_(self.session.close())
+        self._await(self.session.close())

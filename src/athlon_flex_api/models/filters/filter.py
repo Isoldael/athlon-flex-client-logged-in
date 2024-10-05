@@ -1,3 +1,8 @@
+"""The Filter Base class is extended by specific filters.
+
+It provides some common functionality to convert the filter to request parameters.
+"""
+
 from __future__ import annotations
 
 from pydantic import BaseModel
@@ -7,7 +12,7 @@ class Filter(BaseModel):
     """Base class for filters."""
 
     def to_request_params(self) -> dict:
-        """Return the filter as request parameters, to be provied to api request"""
+        """Return the filter as request parameters, to be provied to api request."""
         return {
             f"Filters.{key}": self.bool_to_str(value)
             if isinstance(value, bool)
@@ -23,5 +28,3 @@ class Filter(BaseModel):
 
 class EmptyFilter(Filter):
     """Empty filter for loading all items."""
-
-    pass
