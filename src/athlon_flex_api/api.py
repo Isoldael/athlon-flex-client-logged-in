@@ -5,6 +5,7 @@ from __future__ import annotations
 import asyncio
 from typing import Any, Awaitable, Callable, ClassVar, TypeVar
 
+import nest_asyncio
 from aiohttp import ClientSession
 from async_property import async_cached_property
 from async_property.cached import AsyncCachedPropertyDescriptor
@@ -192,7 +193,7 @@ class AthlonFlexApi(BaseModel):
 
         """
         if detail_level >= DetailLevel.INCLUDE_VEHICLES and not cluster.vehicles:
-            cluster.vehicles = await self.vehicles_async(cluster)
+            cluster.vehicles = await self.vehicles_async(cluster.make, cluster.model)
         if detail_level >= DetailLevel.INCLUDE_VEHICLE_DETAILS:
             cluster.vehicles = await asyncio.gather(
                 *[self.vehicle_details_async(vehicle) for vehicle in cluster.vehicles],
@@ -201,14 +202,15 @@ class AthlonFlexApi(BaseModel):
 
     async def vehicles_async(
         self,
-        vehicle_cluster: VehicleCluster,
+        make: str,
+        model: str,
         filter_: VehicleFilter | None = None,
     ) -> list[Vehicle]:
-        """Load all available vehicles of a given cluster.
+        """Load all available vehicles a certain make and model (of a cluster).
 
         Args:
-            vehicle_cluster: VehicleCluster
-                The cluster for which to load the vehicles.
+            make: str The make of the cluster.
+            model: str The model of the cluster.
             filter_: VehicleFilter | None = None
                 If a filter is not provided, result is filtered based on profile.
                 If a filter is provided, result is filtered based on the filter.
@@ -219,8 +221,8 @@ class AthlonFlexApi(BaseModel):
 
         """
         filter_ = filter_ or VehicleFilter.from_profile(
-            vehicle_cluster.make,
-            vehicle_cluster.model,
+            make,
+            model,
             await self.profile,
         )
         endpoint = "VehicleVariation"
@@ -272,7 +274,10 @@ class AthlonFlexApi(BaseModel):
 
         This makes it possible to run async methods synchronously.
         """
-        return asyncio.get_event_loop().run_until_complete(coro)
+        loop = asyncio.get_event_loop()
+        nest_asyncio.apply(loop)
+
+        return loop.run_until_complete(coro)
 
     def __del__(self) -> None:
         """Automatically close the session when the object is garbage collected."""

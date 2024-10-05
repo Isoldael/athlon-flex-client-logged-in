@@ -35,6 +35,8 @@ idna==3.10
 multidict==6.1.0
     # via aiohttp
     # via yarl
+nest-asyncio==1.6.0
+    # via athlon-flex-api
 pydantic==2.9.2
     # via athlon-flex-api
 pydantic-core==2.23.4
