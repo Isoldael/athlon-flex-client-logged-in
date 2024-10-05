@@ -7,10 +7,10 @@ class VehicleClusterFilter(Filter):
     """Filters for loading the Vehicle Clusters."""
 
     Segment: str | None = "Cars"
-    IncludeTaxInPrices: bool | None
-    NumberOfKmPerMonth: int | None
-    IncludeMileageCostsInPricing: bool | None
-    IncludeFuelCostsInPricing: bool | None
+    IncludeTaxInPrices: bool | None = None
+    NumberOfKmPerMonth: int | None = None
+    IncludeMileageCostsInPricing: bool | None = None
+    IncludeFuelCostsInPricing: bool | None = None
 
     @staticmethod
     def from_profile(profile) -> VehicleClusterFilter:

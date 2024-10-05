@@ -2,21 +2,29 @@ from __future__ import annotations
 
 from athlon_flex_api.models.filters.filter import Filter
 from athlon_flex_api.models.profile import Profile
+from athlon_flex_api.models.vehicle import Vehicle
 
 
 class VehicleFilter(Filter):
-    """Filters for loading the Vehicle Clusters."""
+    """Filters for loading the Vehicle Clusters.
 
-    Segment: str | None = "Cars"
-    Make: str | None
-    Model: str | None
-    IncludeTaxInPrices: bool | None
-    NumberOfKmPerMonth: int | None
-    IncludeMileageCostsInPricing: bool | None
-    IncludeFuelCostsInPricing: bool | None
-    SortBy: str | None = "PriceInEuro"
-    MaxPricePerMonth: int | None
-    ActualBudgetPerMonth: int | None
+    Attributes:
+        VehicleId: str | None
+            Only used if the filter is used to load vehicle details.
+
+    """
+
+    Segment: str = "Cars"
+    VehicleId: str | None = None
+    Make: str | None = None
+    Model: str | None = None
+    IncludeTaxInPrices: bool | None = None
+    NumberOfKmPerMonth: int | None = None
+    IncludeMileageCostsInPricing: bool | None = None
+    IncludeFuelCostsInPricing: bool | None = None
+    SortBy: str = "PriceInEuro"
+    MaxPricePerMonth: int | None = None
+    ActualBudgetPerMonth: int | None = None
 
     @staticmethod
     def from_profile(make: str, model: str, profile: Profile) -> VehicleFilter:

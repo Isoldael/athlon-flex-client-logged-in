@@ -1,8 +1,13 @@
 import os
 
+from athlon_flex_api import logger
 from athlon_flex_api.api import AthlonFlexApi
 
-api = AthlonFlexApi(os.environ["USERNAME"], os.environ["PASSWORD"])
-vehicles_clusters = api.await_(api.vehicles())
-for vehicles in vehicles_clusters:
-    print(vehicles)
+api = AthlonFlexApi(
+    email=os.environ["USERNAME"],
+    password=os.environ["PASSWORD"],
+    gross_yearly_income=100000,
+    apply_loonheffingskorting=True,
+)
+vehicles_clusters = api.await_(api.vehicle_clusters())
+logger.info(vehicles_clusters)
