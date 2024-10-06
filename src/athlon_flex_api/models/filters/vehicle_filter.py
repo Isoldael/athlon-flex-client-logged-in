@@ -1,22 +1,38 @@
+"""A VehicleFilter is used to filter what Vehicles should be loaded from the API.
+
+In most cases, this filter is created based on the user's profile settings.
+"""
+
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from athlon_flex_api.models.filters.filter import Filter
-from athlon_flex_api.models.profile import Profile
+
+if TYPE_CHECKING:
+    from athlon_flex_api.models.profile import Profile
 
 
 class VehicleFilter(Filter):
-    """Filters for loading the Vehicle Clusters."""
+    """Filters for loading the Vehicle Clusters.
 
-    Segment: str | None = "Cars"
-    Make: str | None
-    Model: str | None
-    IncludeTaxInPrices: bool | None
-    NumberOfKmPerMonth: int | None
-    IncludeMileageCostsInPricing: bool | None
-    IncludeFuelCostsInPricing: bool | None
-    SortBy: str | None = "PriceInEuro"
-    MaxPricePerMonth: int | None
-    ActualBudgetPerMonth: int | None
+    Attributes:
+        VehicleId: str | None
+            Only used if the filter is used to load vehicle details.
+
+    """
+
+    Segment: str = "Cars"
+    VehicleId: str | None = None
+    Make: str | None = None
+    Model: str | None = None
+    IncludeTaxInPrices: bool | None = None
+    NumberOfKmPerMonth: int | None = None
+    IncludeMileageCostsInPricing: bool | None = None
+    IncludeFuelCostsInPricing: bool | None = None
+    SortBy: str = "PriceInEuro"
+    MaxPricePerMonth: int | None = None
+    ActualBudgetPerMonth: int | None = None
 
     @staticmethod
     def from_profile(make: str, model: str, profile: Profile) -> VehicleFilter:
@@ -35,5 +51,3 @@ class VehicleFilter(Filter):
 
 class NoFilter(VehicleFilter):
     """Empty filter for loading all items."""
-
-    pass

@@ -1,19 +1,30 @@
+"""Used to filter what VehicleClusters should be loaded from the API.
+
+In most cases, this filter is created based on the user's profile settings. This results
+in the same set of Vehicles that is shown in the web app.
+"""
+
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from athlon_flex_api.models.filters.filter import Filter
+
+if TYPE_CHECKING:
+    from athlon_flex_api.models.profile import Profile
 
 
 class VehicleClusterFilter(Filter):
     """Filters for loading the Vehicle Clusters."""
 
     Segment: str | None = "Cars"
-    IncludeTaxInPrices: bool | None
-    NumberOfKmPerMonth: int | None
-    IncludeMileageCostsInPricing: bool | None
-    IncludeFuelCostsInPricing: bool | None
+    IncludeTaxInPrices: bool | None = None
+    NumberOfKmPerMonth: int | None = None
+    IncludeMileageCostsInPricing: bool | None = None
+    IncludeFuelCostsInPricing: bool | None = None
 
     @staticmethod
-    def from_profile(profile) -> VehicleClusterFilter:
+    def from_profile(profile: Profile) -> VehicleClusterFilter:
         """Create a filter from a profile."""
         return VehicleClusterFilter(
             IncludeTaxInPrices=profile.requiresIncludeTaxInPrices,
@@ -24,6 +35,9 @@ class VehicleClusterFilter(Filter):
 
 
 class NoFilter(VehicleClusterFilter):
-    """Empty filter for loading all items."""
+    """Empty filter for loading all items.
 
-    pass
+    Using this filter would load all available VehicleClusters, irregarding
+    of whether the user can lease them. This is equivalent to opening the showroom
+    web app without being logged in.
+    """
