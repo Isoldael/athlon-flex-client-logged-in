@@ -1,6 +1,6 @@
 """A VehicleCluster defines a set of vehicles of a specific make and model.
 
-Vehicle clusters are shown on the showroom of the web app.
+Vehicle clusters are shown in the showroom of the web app.
 """
 
 from __future__ import annotations

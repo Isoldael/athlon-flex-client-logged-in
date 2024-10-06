@@ -24,9 +24,9 @@ The `email` and `password` arguments are required. You can optionally provide an
 # Entity Definitions
 When you open the Athlon Flex Dashboard, you are presented with a grid of available cars. These cars are internally called VehicleClusters. This name makes sense, because a car is actually a collection of car instances: Athlon often has several cars available of the same make and model. A VehicleCluster is therefor defined by its _make_ and _model_.
 This is a **VehicleCluster** of the make _Mercedes-Benz_ and the model _A-Klasse_:
-![VehicleCluster](/assets/showroom.png)
+![VehicleCluster](./assets/showroom.png)
 Currently, Athlon has 2 **Vehicles** in this cluster available:
-![Vehicles](/assets/vehicles.png)
+![Vehicles](./assets/vehicles.png)
 
 # Examples
 ## Load VehicleClusters
@@ -45,7 +45,7 @@ print(vehicles_clusters)
 The filter parameter is optional. We distinguish the following possible values:
 - `[Default]None` includes the filters as loaded from the users profile. This excludes any VehicleClusters that are not leasable with the budget of th user. This mimics the web app when _logged in_.
 - `NoFilter()` does not include any filter in the request. This mimics the web app when _not logged in_.
-- `VehicleClusterFilter()` provides custom filter values. Take a look at the [VehicleClusterFilter](/src/athlon_flex_api/models/filters/vehicle_cluster_filter.py) class to check what filters are available.
+- `VehicleClusterFilter()` provides custom filter values. Take a look at the [VehicleClusterFilter](../src/athlon_flex_api/models/filters/vehicle_cluster_filter.py) class to check what filters are available.
 
 ### Detail level
 The detail level is optional. It provides the possibility to define the level of details in the response. Loading more details requires more api calls, hence the function will take longer to complte. We distinguish the following possible values:
@@ -69,7 +69,7 @@ print(vehicles)
 The filter parameter is optional. We distinguish the following possible values:
 - `[Default]None` includes the filters as loaded from the users profile. This excludes any Vehicles that are not leasable with the budget of th user. It also defines some price calculation properties. 
 - `NoFilter()` does not include any filter in the request. All available Vehicles of the provided make and model will be loaded. 
-- `VehicleFilter()` provides custom filter values. Take a look at the [VehicleFilter](/src/athlon_flex_api/models/filters/vehicle_filter.py) class to check what filters are available.
+- `VehicleFilter()` provides custom filter values. Take a look at the [VehicleFilter](../src/athlon_flex_api/models/filters/vehicle_filter.py) class to check what filters are available.
 
 Note that above function will load the vehicles _without extra details_. To load all available details, call the `vehicle_details` function for each vehicle:
 ```python
@@ -79,7 +79,7 @@ print(vehicles)
 ```
 
 ### Tax Rates
-Athlon provides a TaxRates endpoint, providing a list of TaxRate items. These include a description indicating the gross yearly income rates which belong to the TaxRate, and whether to include loonheffingskorting in the calculation of net prices. The TaxRate also includes the percentage of tax rate that must be paid with this income / loonheffingskorting combination. The Api uses this endpoint internally, to provide these details with other requests. This information causes the api to include net-price computations, like the `netCostPerMonthInEuro` in the [Vehicle](/src/athlon_flex_api/models/vehicle.py) class. 
+Athlon provides a TaxRates endpoint, providing a list of TaxRate items. These include a description indicating the gross yearly income rates which belong to the TaxRate, and whether to include loonheffingskorting in the calculation of net prices. The TaxRate also includes the percentage of tax rate that must be paid with this income / loonheffingskorting combination. The Api uses this endpoint internally, to provide these details with other requests. This information causes the api to include net-price computations, like the `netCostPerMonthInEuro` in the [Vehicle](../src/athlon_flex_api/models/vehicle.py) class. 
 
 The endpoint is also made available for use, using the following code snippet:
 ```python
