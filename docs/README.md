@@ -11,15 +11,15 @@ pip install athlon-flex-api
 # Getting Started
 To use this package, you should start by instantiating the API client. 
 ```python
-from athlon_flex_api.api import AthlonFlexApi
+from athlon_flex_api import AthlonFlexApi
 api = AthlonFlexApi(
-    email="youremail@example.com"
-    password="YourVeryStrongPassword",
+    email="youremail@example.com" # Optional
+    password="YourVeryStrongPassword", # Optional
     gross_yearly_income=100000, # Optional
     apply_loonheffingskorting=True, # Optional, Defaults to True
 )
 ```
-The `email` and `password` arguments are required. You can optionally provide an (approximation) of your yearly gross income, and whether you apply [loonheffingskorting](https://www.belastingdienst.nl/wps/wcm/connect/nl/jongeren/content/hoe-werkt-loonheffingskorting). These two values will be used to figured the tax percentage belonging to your income. this information is included in API calls, resulting in Athlon providing a calculated Net costs of your vehicle.
+If you do not provide login details, all available vehicles will be loaded, irregarding of whether they fit your budget. If you do provide login details, only vehicles available for you will be shown. You can optionally provide an (approximation) of your yearly gross income, and whether you apply [loonheffingskorting](https://www.belastingdienst.nl/wps/wcm/connect/nl/jongeren/content/hoe-werkt-loonheffingskorting). These two values will be used to figured the tax percentage belonging to your income. this information is included in API calls, resulting in Athlon providing a calculated Net costs of your vehicle.
 
 # Entity Definitions
 When you open the Athlon Flex Dashboard, you are presented with a grid of available cars. These cars are internally called VehicleClusters. This name makes sense, because a car is actually a collection of car instances: Athlon often has several cars available of the same make and model. A VehicleCluster is therefor defined by its _make_ and _model_.
@@ -32,19 +32,18 @@ Currently, Athlon has 2 **Vehicles** in this cluster available:
 ## Load VehicleClusters
 Use the following code to load all VehicleClusters:
 ```python
-from athlon_flex_api.models.filters.vehicle_cluster_filter import NoFilter
+from athlon_flex_api.models.filters.vehicle_cluster_filter import AllVehicleClusters
 from athlon_flex_api.models.vehicle_cluster import DetailLevel, VehicleClusters
-from athlon_flex_api.models.vehicle_cluster import 
 vehicles_clusters: VehicleClusters = api.vehicle_clusters(
-    filter_=NoFilter(), # Optional
+    filter_=AllVehicleClusters(), # Optional
     detail_level=DetailLevel.INCLUDE_VEHICLES, # Optional
 )
 print(vehicles_clusters)
 ```
 ### Filter
 The filter parameter is optional. We distinguish the following possible values:
-- `[Default]None` includes the filters as loaded from the users profile. This excludes any VehicleClusters that are not leasable with the budget of th user. This mimics the web app when _logged in_.
-- `NoFilter()` does not include any filter in the request. This mimics the web app when _not logged in_.
+- `[Default]None` includes the filters as loaded from the users profile. This excludes any VehicleClusters that are not leasable with the budget of th user. This mimics the web app when _logged in_. If not logged in, equal to providing `AllVehicleClusters()`
+- `AllVehicleClusters()` does not include any filter in the request. This mimics the web app when _not logged in_.
 - `VehicleClusterFilter()` provides custom filter values. Take a look at the [VehicleClusterFilter](../src/athlon_flex_api/models/filters/vehicle_cluster_filter.py) class to check what filters are available.
 
 ### Detail level
@@ -61,15 +60,10 @@ from athlon_flex_api.models.filters.vehicle_filter import NoFilter
     vehicles: list[Vehicle] = api.vehicles(
         make="Mercedes-Benz",
         model="A-Klasse",
-        filter_=NoFilter(), # Optional
     )
 print(vehicles)
 ```
-### Filter
-The filter parameter is optional. We distinguish the following possible values:
-- `[Default]None` includes the filters as loaded from the users profile. This excludes any Vehicles that are not leasable with the budget of th user. It also defines some price calculation properties. 
-- `NoFilter()` does not include any filter in the request. All available Vehicles of the provided make and model will be loaded. 
-- `VehicleFilter()` provides custom filter values. Take a look at the [VehicleFilter](../src/athlon_flex_api/models/filters/vehicle_filter.py) class to check what filters are available.
+If logged in, all leasable vehicles will be returned. If not logged in, all available vehicles will be returned. 
 
 Note that above function will load the vehicles _without extra details_. To load all available details, call the `vehicle_details` function for each vehicle:
 ```python
@@ -88,6 +82,8 @@ tax_rates: TaxRates = api.tax_rates()
 print(tax_rates)
 ```
 ### Profile
+_This endpoint is not available when not logged in._
+
 The Profile includes information about the users account, like the lease budget, address, and available kilometers per month. The API uses it internally, for example to filter the Vehicles that are leasable by the user. The endpoint exposes the profile using a cached property. Use the following code snippet:
 ```python
 from athlon_flex_api.models.profile import Profile

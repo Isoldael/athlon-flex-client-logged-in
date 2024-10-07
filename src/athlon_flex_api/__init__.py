@@ -13,4 +13,6 @@ console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(log_format)
 logger.addHandler(console_handler)
 
-__all__ = ["logger", "api", "vehicles_clusters"]
+from athlon_flex_api.api import AthlonFlexApi  # noqa: E402
+
+__all__ = ["logger", "api", "vehicles_clusters", "AthlonFlexApi"]
