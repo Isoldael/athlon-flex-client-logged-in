@@ -47,7 +47,3 @@ class VehicleFilter(Filter):
             MaxPricePerMonth=profile.budget.maxBudgetPerMonth,
             ActualBudgetPerMonth=profile.budget.actualBudgetPerMonth,
         )
-
-
-class NoFilter(VehicleFilter):
-    """Empty filter for loading all items."""

@@ -13,7 +13,10 @@ from async_property.cached import AsyncCachedPropertyDescriptor
 from pydantic import BaseModel, ConfigDict, Field
 
 from athlon_flex_api import logger
-from athlon_flex_api.models.filters.vehicle_cluster_filter import VehicleClusterFilter
+from athlon_flex_api.models.filters.vehicle_cluster_filter import (
+    AllVehicleClusters,
+    VehicleClusterFilter,
+)
 from athlon_flex_api.models.filters.vehicle_filter import VehicleFilter
 from athlon_flex_api.models.profile import Profile
 from athlon_flex_api.models.tax_rate import TaxRate, TaxRates
@@ -47,6 +50,8 @@ class AthlonFlexApi(BaseModel):
             A static page ID, retrieved by manually interacting with the web app.
             The TaxRates endpoint requires a valid page ID to return the tax rates.
             Could not figure out how to get a valid page ID from the API.
+        logged_in: bool
+            Whether the user is logged in.
 
     """
 
@@ -55,11 +60,12 @@ class AthlonFlexApi(BaseModel):
         arbitrary_types_allowed=True,
     )
 
-    email: str
-    password: str
+    email: str | None = None
+    password: str | None = None
     gross_yearly_income: float | None = None
     apply_loonheffingskorting: bool = True
     session: ClientSession = Field(init=False, optional=True, default=None)
+    logged_in: bool = Field(init=False, default=False)
 
     BASE_URL: ClassVar[str] = "https://flex.athlon.com/api/v1"
     TAX_RATES_PAGE_ID: ClassVar[str] = "4ecf5f24-8985-450a-915d-919aa7ffa9df"
@@ -77,7 +83,8 @@ class AthlonFlexApi(BaseModel):
         We have to skip SSL verification because the API uses a self-signed certificate.
         """
         self.session = ClientSession()
-        await self._login()
+        if self.email and self.password:
+            await self._login()
         await self._set_tax_rate_cookie()
 
     async def _login(self) -> None:
@@ -87,13 +94,13 @@ class AthlonFlexApi(BaseModel):
         Connection details are stored in the session.
         """
         endpoint = "MemberLogin"
-
         response = await self.session.post(
             self._url(endpoint),
             json={"username": self.email, "password": self.password},
             verify_ssl=False,
         )
         response.raise_for_status()
+        self.logged_in = True
 
     def _url(self, endpoint: str) -> str:
         result = f"{self.BASE_URL}/{endpoint}"
@@ -142,16 +149,24 @@ class AthlonFlexApi(BaseModel):
         """Load all clusters that have at least one vehicle available.
 
         Args:
-            filter_: If a filter is not provided, result is filtered based on profile.
-                If a filter is provided, result is filtered based on the filter.
-                    There exists a special NoFilter subclass to load all clusters.
+            filter_: How to filter the clusters.
+                If not provided:
+                    Use filter based on profile if logged in
+                    else do not filter.
             detail_level: The level of detail to include in the clusters.
 
         Returns:
             VehicleClusters: A collection of vehicle clusters.
 
         """
-        filter_ = filter_ or VehicleClusterFilter.from_profile(await self.profile_async)
+        if not filter_:
+            filter_ = (
+                VehicleClusterFilter.from_profile(
+                    await self.profile_async,
+                )
+                if self.logged_in
+                else AllVehicleClusters()
+            )
         endpoint = "VehicleCluster"
         response = await self.session.get(
             self._url(endpoint),
@@ -162,7 +177,10 @@ class AthlonFlexApi(BaseModel):
         return VehicleClusters(
             vehicle_clusters=await asyncio.gather(
                 *[
-                    self._apply_detail_level(VehicleCluster(**cluster), detail_level)
+                    self._apply_detail_level(
+                        VehicleCluster(**cluster),
+                        detail_level,
+                    )
                     for cluster in await response.json()
                 ],
             ),
@@ -199,7 +217,10 @@ class AthlonFlexApi(BaseModel):
 
         """
         if detail_level >= DetailLevel.INCLUDE_VEHICLES and not cluster.vehicles:
-            cluster.vehicles = await self.vehicles_async(cluster.make, cluster.model)
+            cluster.vehicles = await self.vehicles_async(
+                cluster.make,
+                cluster.model,
+            )
         if detail_level >= DetailLevel.INCLUDE_VEHICLE_DETAILS:
             cluster.vehicles = await asyncio.gather(
                 *[self.vehicle_details_async(vehicle) for vehicle in cluster.vehicles],
@@ -210,31 +231,36 @@ class AthlonFlexApi(BaseModel):
         self,
         make: str,
         model: str,
-        filter_: VehicleFilter | None = None,
     ) -> list[Vehicle]:
         """Load all available vehicles a certain make and model (of a cluster).
+
+        If logged in, only load the vehicles that are available to the user.
 
         Args:
             make: str The make of the cluster.
             model: str The model of the cluster.
-            filter_: VehicleFilter | None = None
+            vehicle_filter: VehicleFilter | None = None
                 If a filter is not provided, result is filtered based on profile.
-                If a filter is provided, result is filtered based on the filter.
-                    There exists a special NoFilter subclass to load all vehicles.
 
         Returns:
             list[Vehicle]: A collection of vehicles of the given make and model.
 
         """
-        filter_ = filter_ or VehicleFilter.from_profile(
-            make,
-            model,
-            await self.profile_async,
-        )
+        if self.logged_in:
+            vehicle_filter = VehicleFilter.from_profile(
+                make,
+                model,
+                await self.profile_async,
+            )
+        else:
+            vehicle_filter = VehicleFilter(
+                Make=make,
+                Model=model,
+            )
         endpoint = "VehicleVariation"
         response = await self.session.get(
             self._url(endpoint),
-            params=filter_.to_request_params(),
+            params=vehicle_filter.to_request_params(),
             verify_ssl=False,
         )
         response.raise_for_status()
@@ -251,10 +277,15 @@ class AthlonFlexApi(BaseModel):
             Vehicle: The vehicle with the loaded details.
 
         """
+        params = (
+            vehicle.details_request_params_from_profile(await self.profile_async)
+            if self.logged_in
+            else vehicle.details_request_params_without_profile()
+        )
         endpoint = "Vehicle"
         response = await self.session.get(
             self._url(endpoint),
-            params=vehicle.details_request_params(await self.profile_async),
+            params=params,
             verify_ssl=False,
         )
         response.raise_for_status()

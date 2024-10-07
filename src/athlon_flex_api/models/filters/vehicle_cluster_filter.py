@@ -34,7 +34,7 @@ class VehicleClusterFilter(Filter):
         )
 
 
-class NoFilter(VehicleClusterFilter):
+class AllVehicleClusters(VehicleClusterFilter):
     """Empty filter for loading all items.
 
     Using this filter would load all available VehicleClusters, irregarding

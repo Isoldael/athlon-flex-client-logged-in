@@ -56,7 +56,7 @@ class Vehicle(BaseModel):
         calculatedPricePerMonthInEuro: float
         pricePerKm: float
         fuelPricePerKm: float
-        contributionInEuro: float
+        contributionInEuro: float | None = None
         expectedFuelCostPerMonthInEuro: float
         netCostPerMonthInEuro: float | None = None
 
@@ -84,7 +84,7 @@ class Vehicle(BaseModel):
     rangeInKm: int
     externalFuelTypeId: int
     externalTypeId: str
-    imageUri: str
+    imageUri: str | None = None
     isElectric: bool | None = None
     details: Details | None = None
     pricing: Pricing | None = None
@@ -97,8 +97,13 @@ class Vehicle(BaseModel):
         """
         return f"{self.make} {self.model} {self.type} {self.modelYear}"
 
-    def details_request_params(self, profile: Profile) -> dict[str, str | int]:
-        """Return the request parameters for loading the details of the vehicle."""
+    def details_request_params_from_profile(
+        self, profile: Profile
+    ) -> dict[str, str | int]:
+        """Return the request parameters for loading the details of the vehicle.
+
+        Used when logged in
+        """
         bool_to_str = Filter.bool_to_str
         return {
             "Segment": "Cars",
@@ -110,6 +115,16 @@ class Vehicle(BaseModel):
             ),
             "IncludeFuelCostsInPricing": bool_to_str(profile.includeFuelCostsInPricing),
             "ActualBudgetPerMonth": profile.budget.actualBudgetPerMonth,
+        }
+
+    def details_request_params_without_profile(self) -> dict[str, str | int]:
+        """Return the request parameters for loading the details of the vehicle.
+
+        Used when not logged in.
+        """
+        return {
+            "Segment": "Cars",
+            "VehicleId": self.id,
         }
 
     @property
