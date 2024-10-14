@@ -9,6 +9,15 @@
                 "cwd": "${workspaceFolder}"
             },
             "problemMatcher": []
+        },
+        {
+            "label": "Design: bublish to pypi",
+            "type": "shell",
+            "command": "rye build; rye publish",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "problemMatcher": []
         }
     ]
 }
