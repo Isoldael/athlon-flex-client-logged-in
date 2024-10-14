@@ -1,6 +1,6 @@
 [project]
 name = "athlon-flex-api"
-version = "0.1.5"
+version = "0.1.6"
 description = "Unofficial API client for Athlon Flex Lease"
 authors = [
     { name = "Aucke Bos", email = "hedge-cannon-aged@duck.com" }
