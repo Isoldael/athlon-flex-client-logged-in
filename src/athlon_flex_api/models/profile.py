@@ -69,23 +69,23 @@ class Profile(BaseModel):
     numberOfKmPerMonth: int
     remainingSwaps: int
     budget: Budget
-    hideIntroPopup: bool
-    chargingStationRequest: bool
-    pendingCancelation: bool
-    pendingBikeCancelation: bool
-    pendingBudgetPayout: bool
-    pendingHolidayCarRaise: bool
-    deliveryAddress: Address
-    officialAddress: Address
+    hideIntroPopup: bool | None = None
+    chargingStationRequest: bool | None = None
+    pendingCancelation: bool | None = None
+    pendingBikeCancelation: bool | None = None
+    pendingBudgetPayout: bool | None = None
+    pendingHolidayCarRaise: bool | None = None
+    deliveryAddress: Address | None = None
+    officialAddress: Address | None = None
     currentReservation: CurrentReservation | None = None
     firstReservationAllowedFromUtc: str
     firstDeliveryAllowedFromUtc: str
-    canOrderBike: bool
-    canMakeReservation: bool
-    canMakeReservationFromUtc: str
-    canMakePickup: bool
-    canMakeBikeReservation: bool
-    canMakeBikePickup: bool
-    canMakeFirstReservation: bool
-    canDecline: bool
-    canDeclineBike: bool
+    canOrderBike: bool | None = None
+    canMakeReservation: bool | None = None
+    canMakeReservationFromUtc: str | None = None
+    canMakePickup: bool | None = None
+    canMakeBikeReservation: bool | None = None
+    canMakeBikePickup: bool | None = None
+    canMakeFirstReservation: bool | None = None
+    canDecline: bool | None = None
+    canDeclineBike: bool | None = None
