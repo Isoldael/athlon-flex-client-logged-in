@@ -7,7 +7,7 @@ from functools import cached_property
 from typing import Any, Awaitable, Callable, ClassVar, TypeVar
 
 import nest_asyncio
-from aiohttp import ClientSession
+from aiohttp import ClientResponseError, ClientSession
 from async_property import async_cached_property
 from async_property.cached import AsyncCachedPropertyDescriptor
 from pydantic import BaseModel, ConfigDict, Field
@@ -180,6 +180,10 @@ class AthlonFlexApi(BaseModel):
                     self._apply_detail_level(
                         VehicleCluster(**cluster),
                         detail_level,
+                        filter_vehicles_by_profile=not isinstance(
+                            filter_,
+                            AllVehicleClusters,
+                        ),
                     )
                     for cluster in await response.json()
                 ],
@@ -205,12 +209,16 @@ class AthlonFlexApi(BaseModel):
         self,
         cluster: VehicleCluster,
         detail_level: DetailLevel,
+        *,
+        filter_vehicles_by_profile: bool = True,
     ) -> VehicleCluster:
         """Apply the detail level to the cluster, by loading more data if necessary.
 
         Args:
             cluster: The cluster to apply the detail level to.
             detail_level: The level of detail to apply.
+            filter_vehicles_by_profile: If true, vehilces are filtered by being
+                leasable by the current profile.
 
         Returns:
             VehicleCluster: The cluster with the applied detail level.
@@ -220,6 +228,7 @@ class AthlonFlexApi(BaseModel):
             cluster.vehicles = await self.vehicles_async(
                 cluster.make,
                 cluster.model,
+                filter_vehicles_by_profile=filter_vehicles_by_profile,
             )
         if detail_level >= DetailLevel.INCLUDE_VEHICLE_DETAILS:
             cluster.vehicles = await asyncio.gather(
@@ -231,6 +240,8 @@ class AthlonFlexApi(BaseModel):
         self,
         make: str,
         model: str,
+        *,
+        filter_vehicles_by_profile: bool = True,
     ) -> list[Vehicle]:
         """Load all available vehicles a certain make and model (of a cluster).
 
@@ -239,14 +250,14 @@ class AthlonFlexApi(BaseModel):
         Args:
             make: str The make of the cluster.
             model: str The model of the cluster.
-            vehicle_filter: VehicleFilter | None = None
-                If a filter is not provided, result is filtered based on profile.
+            filter_vehicles_by_profile: If true, vehilces are filtered by being
+                leasable by the current profile.
 
         Returns:
             list[Vehicle]: A collection of vehicles of the given make and model.
 
         """
-        if self.logged_in:
+        if self.logged_in and filter_vehicles_by_profile:
             vehicle_filter = VehicleFilter.from_profile(
                 make,
                 model,
@@ -288,7 +299,18 @@ class AthlonFlexApi(BaseModel):
             params=params,
             verify_ssl=False,
         )
-        response.raise_for_status()
+        try:
+            response.raise_for_status()
+        except ClientResponseError:
+            # If not found, try to find when "not logged in"
+            if response.status == 404 and self.logged_in:  # noqa: PLR2004
+                response = await self.session.get(
+                    self._url(endpoint),
+                    params=vehicle.details_request_params_without_profile(),
+                    verify_ssl=False,
+                )
+                response.raise_for_status()
+
         return Vehicle(**await response.json())
 
     def __getattr__(self, name: str) -> Callable:
