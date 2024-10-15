@@ -43,7 +43,7 @@ print(vehicles_clusters)
 ### Filter
 The filter parameter is optional. We distinguish the following possible values:
 - `[Default]None` includes the filters as loaded from the users profile. This excludes any VehicleClusters that are not leasable with the budget of th user. This mimics the web app when _logged in_. If not logged in, equal to providing `AllVehicleClusters()`
-- `AllVehicleClusters()` does not include any filter in the request. This mimics the web app when _not logged in_.
+- `AllVehicleClusters()` does not include any filter in the request. This mimics the web app when _not logged in_. If the DetailLevel indicates to also load vehicles, it will load _all vehicles_ too (instead of only the vehicles leasble by the current user).
 - `VehicleClusterFilter()` provides custom filter values. Take a look at the [VehicleClusterFilter](../src/athlon_flex_api/models/filters/vehicle_cluster_filter.py) class to check what filters are available.
 
 ### Detail level
@@ -60,10 +60,11 @@ from athlon_flex_api.models.filters.vehicle_filter import NoFilter
     vehicles: list[Vehicle] = api.vehicles(
         make="Mercedes-Benz",
         model="A-Klasse",
+        filter_vehicles_by_profile=True # Optional
     )
 print(vehicles)
 ```
-If logged in, all leasable vehicles will be returned. If not logged in, all available vehicles will be returned. 
+If `filter_vehicles_by_profile` is true and logged in, only the leasable vehicles will be returned. If `filter_vehicles_by_profile` is false or not logged in, all available vehicles will be returned. 
 
 Note that above function will load the vehicles _without extra details_. To load all available details, call the `vehicle_details` function for each vehicle:
 ```python
