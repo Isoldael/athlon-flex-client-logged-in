@@ -7,7 +7,7 @@ from functools import cached_property
 from typing import Any, Awaitable, Callable, ClassVar, TypeVar
 
 import nest_asyncio
-from aiohttp import ClientResponseError, ClientSession
+from aiohttp import ClientResponse, ClientResponseError, ClientSession
 from async_property import async_cached_property
 from async_property.cached import AsyncCachedPropertyDescriptor
 from pydantic import BaseModel, ConfigDict, Field
@@ -302,16 +302,38 @@ class AthlonFlexApi(BaseModel):
         try:
             response.raise_for_status()
         except ClientResponseError:
-            # If not found, try to find when "not logged in"
+            # vehicle not leasable. Run in clean session to load data
             if response.status == 404 and self.logged_in:  # noqa: PLR2004
-                response = await self.session.get(
-                    self._url(endpoint),
-                    params=vehicle.details_request_params_without_profile(),
-                    verify_ssl=False,
+                data = await self._run_in_clean_session(
+                    lambda session: session.get(
+                        self._url(endpoint),
+                        params=params,
+                        verify_ssl=False,
+                    ),
                 )
-                response.raise_for_status()
+            else:
+                raise
+        else:
+            data = await response.json()
 
-        return Vehicle(**await response.json())
+        return Vehicle(**data)
+
+    async def _run_in_clean_session(
+        self,
+        callable_: callable[[ClientSession], ClientResponse],
+    ) -> dict:
+        """Run a callable in a clean session. The user will not be logged in.
+
+        Args:
+            callable_ (callable):
+                Should consume a ClientSession and return a ClientResponse.
+
+        """
+        """Run a coroutine in a clean session."""
+        async with ClientSession() as session:
+            response = await callable_(session)
+            response.raise_for_status()
+            return await response.json()
 
     def __getattr__(self, name: str) -> Callable:
         """Allow synchronous access to async methods.

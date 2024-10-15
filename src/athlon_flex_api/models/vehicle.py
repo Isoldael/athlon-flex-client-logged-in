@@ -98,7 +98,8 @@ class Vehicle(BaseModel):
         return f"{self.make} {self.model} {self.type} {self.modelYear}"
 
     def details_request_params_from_profile(
-        self, profile: Profile
+        self,
+        profile: Profile,
     ) -> dict[str, str | int]:
         """Return the request parameters for loading the details of the vehicle.
 
