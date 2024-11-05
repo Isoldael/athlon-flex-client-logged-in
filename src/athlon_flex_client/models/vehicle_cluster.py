@@ -9,7 +9,7 @@ from enum import IntEnum
 
 from pydantic import BaseModel, Field
 
-from athlon_flex_api.models.vehicle import Vehicle  # noqa: TCH001
+from athlon_flex_client.models.vehicle import Vehicle  # noqa: TCH001
 
 
 class VehicleCluster(BaseModel):
@@ -74,7 +74,7 @@ class VehicleClusters(BaseModel):
 class DetailLevel(IntEnum):
     """The level of detail to include in a VehicleCluster object.
 
-    More detail means more requests. Used in the API to determine
+    More detail means more requests. Used in the API Client to determine
     what to load.
 
     Attributes:

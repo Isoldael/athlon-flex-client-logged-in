@@ -1,1 +1,1 @@
-:::athlon_flex_api.models.profile
+:::athlon_flex_client.models.profile

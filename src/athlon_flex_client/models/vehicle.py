@@ -9,10 +9,10 @@ from typing import TYPE_CHECKING
 
 from pydantic import BaseModel
 
-from athlon_flex_api.models.filters.filter import Filter
+from athlon_flex_client.models.filters.filter import Filter
 
 if TYPE_CHECKING:
-    from athlon_flex_api.models.profile import Profile
+    from athlon_flex_client.models.profile import Profile
 
 
 class Vehicle(BaseModel):
@@ -47,7 +47,7 @@ class Vehicle(BaseModel):
         Attributes:
             netCostPerMonthInEuro: float | None = None
                 Only if the tax rate cookies are set.
-                    See AthlonFlexApi._set_tax_rate_cookie
+                    See AthlonFlexClient._set_tax_rate_cookie
 
         """
 

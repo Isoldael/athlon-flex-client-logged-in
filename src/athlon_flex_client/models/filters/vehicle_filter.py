@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from athlon_flex_api.models.filters.filter import Filter
+from athlon_flex_client.models.filters.filter import Filter
 
 if TYPE_CHECKING:
-    from athlon_flex_api.models.profile import Profile
+    from athlon_flex_client.models.profile import Profile
 
 
 class VehicleFilter(Filter):

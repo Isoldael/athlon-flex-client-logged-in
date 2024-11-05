@@ -1,1 +1,1 @@
-:::athlon_flex_api.api
+:::athlon_flex_client.client

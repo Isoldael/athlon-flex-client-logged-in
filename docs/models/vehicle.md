@@ -1,1 +1,1 @@
-:::athlon_flex_api.models.vehicle
+:::athlon_flex_client.models.vehicle

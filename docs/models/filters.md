@@ -1,3 +1,3 @@
-:::athlon_flex_api.models.filters
+:::athlon_flex_client.models.filters
     options:
         show_submodules: true

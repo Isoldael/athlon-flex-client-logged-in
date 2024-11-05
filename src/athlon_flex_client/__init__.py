@@ -1,4 +1,4 @@
-"""Top-level package for Athlon Flex API."""
+"""Top-level package for Athlon Flex Client."""
 
 import logging
 
@@ -13,6 +13,6 @@ console_handler.setLevel(logging.INFO)
 console_handler.setFormatter(log_format)
 logger.addHandler(console_handler)
 
-from athlon_flex_api.api import AthlonFlexApi  # noqa: E402
+from athlon_flex_client.client import AthlonFlexClient  # noqa: E402
 
-__all__ = ["logger", "api", "vehicles_clusters", "AthlonFlexApi"]
+__all__ = ["logger", "client", "vehicles_clusters", "AthlonFlexClient"]

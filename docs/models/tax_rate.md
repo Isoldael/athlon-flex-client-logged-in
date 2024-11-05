@@ -1,1 +1,1 @@
-:::athlon_flex_api.models.tax_rate
+:::athlon_flex_client.models.tax_rate

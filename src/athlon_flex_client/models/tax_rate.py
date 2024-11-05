@@ -6,7 +6,7 @@ import re
 
 from pydantic import BaseModel
 
-from athlon_flex_api import logger
+from athlon_flex_client import logger
 
 
 class TaxRate(BaseModel):

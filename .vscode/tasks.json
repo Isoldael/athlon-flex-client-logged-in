@@ -11,7 +11,7 @@
             "problemMatcher": []
         },
         {
-            "label": "Design: bublish to pypi",
+            "label": "Design: publish to pypi",
             "type": "shell",
             "command": "rye build; rye publish",
             "options": {

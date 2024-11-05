@@ -1,1 +1,1 @@
-:::athlon_flex_api.models.vehicle_cluster
+:::athlon_flex_client.models.vehicle_cluster

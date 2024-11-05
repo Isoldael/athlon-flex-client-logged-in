@@ -12,16 +12,16 @@ from async_property import async_cached_property
 from async_property.cached import AsyncCachedPropertyDescriptor
 from pydantic import BaseModel, ConfigDict, Field
 
-from athlon_flex_api import logger
-from athlon_flex_api.models.filters.vehicle_cluster_filter import (
+from athlon_flex_client import logger
+from athlon_flex_client.models.filters.vehicle_cluster_filter import (
     AllVehicleClusters,
     VehicleClusterFilter,
 )
-from athlon_flex_api.models.filters.vehicle_filter import VehicleFilter
-from athlon_flex_api.models.profile import Profile
-from athlon_flex_api.models.tax_rate import TaxRate, TaxRates
-from athlon_flex_api.models.vehicle import Vehicle
-from athlon_flex_api.models.vehicle_cluster import (
+from athlon_flex_client.models.filters.vehicle_filter import VehicleFilter
+from athlon_flex_client.models.profile import Profile
+from athlon_flex_client.models.tax_rate import TaxRate, TaxRates
+from athlon_flex_client.models.vehicle import Vehicle
+from athlon_flex_client.models.vehicle_cluster import (
     DetailLevel,
     VehicleCluster,
     VehicleClusters,
@@ -30,7 +30,7 @@ from athlon_flex_api.models.vehicle_cluster import (
 T = TypeVar("T")
 
 
-class AthlonFlexApi(BaseModel):
+class AthlonFlexClient(BaseModel):
     """Athlon Flex API client.
 
     Exposes functions to load the profile, vehicle clusters, vehicles & vehicle details.
@@ -42,7 +42,7 @@ class AthlonFlexApi(BaseModel):
         password: str The password of the user.
         gross_yearly_income: float | None = None The optional (approximate) gross yearly
             income of the user. If provided, the tax rate group will be calculated,
-            and added as cookie to the session. The API will then include calculated
+            and added as cookie to the session. The Client will then include calculated
             net prices for the user
         apply_loonheffingskorting: bool = True Whether to apply the loonheffingskorting.
             Required to find the tax rate belonging to the gross yearly income.
