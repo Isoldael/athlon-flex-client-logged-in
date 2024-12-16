@@ -27,7 +27,7 @@ class VehicleCluster(BaseModel):
     vehicleCount: int
     minPriceInEuroPerMonth: float
     fiscalValueInEuro: float
-    additionPercentage: float
+    additionPercentage: float | None = None
     externalFuelTypeId: int
     maxCO2Emission: int
     imageUri: str

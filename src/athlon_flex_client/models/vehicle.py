@@ -39,7 +39,7 @@ class Vehicle(BaseModel):
         transmissionType: str
         avgFuelConsumption: float
         typeSpareWheel: str
-        additionPercentage: float
+        additionPercentage: float | None = None
 
     class Pricing(BaseModel):
         """Vehicle pricing.
