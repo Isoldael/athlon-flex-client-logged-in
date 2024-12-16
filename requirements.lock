@@ -37,6 +37,8 @@ multidict==6.1.0
     # via yarl
 nest-asyncio==1.6.0
     # via athlon-flex-client
+pkginfo==1.12.0
+    # via athlon-flex-client
 pydantic==2.9.2
     # via athlon-flex-client
 pydantic-core==2.23.4

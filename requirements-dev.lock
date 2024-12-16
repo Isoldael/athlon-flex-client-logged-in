@@ -80,6 +80,8 @@ packaging==24.1
     # via mkdocs
 pathspec==0.12.1
     # via mkdocs
+pkginfo==1.12.0
+    # via athlon-flex-client
 platformdirs==4.3.6
     # via mkdocs-get-deps
     # via mkdocstrings
