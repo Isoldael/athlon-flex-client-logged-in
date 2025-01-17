@@ -41,7 +41,7 @@ class TaxRate(BaseModel):
         If no values are found, both bounds are set to 0.0
             an income will never match this rate.
         """
-        pattern = r"€ (\d+(?:\.\d+)?)"
+        pattern = r"€\s?(\d+(?:\.\d+)?)"
         matches = re.findall(pattern, self.label)
         matches = [match.replace(".", "") for match in matches]
         if matches and 0 < len(matches) <= 2:  # noqa: PLR2004

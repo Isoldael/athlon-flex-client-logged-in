@@ -13,7 +13,7 @@ To use this package, you should start by instantiating the API client.
 ```python
 from athlon_flex_client import AthlonFlexClient
 client = AthlonFlexClient(
-    email="youremail@example.com" # Optional
+    email="youremail@example.com", # Optional
     password="YourVeryStrongPassword", # Optional
     gross_yearly_income=100000, # Optional
     apply_loonheffingskorting=True, # Optional, Defaults to True
@@ -57,11 +57,11 @@ With the `vehicle_cluster` function, all available data clusters and vehicles ca
 ```python
 from athlon_flex_client.models.vehicle import Vehicle
 from athlon_flex_client.models.filters.vehicle_filter import NoFilter
-    vehicles: list[Vehicle] = client.vehicles(
-        make="Mercedes-Benz",
-        model="A-Klasse",
-        filter_vehicles_by_profile=True # Optional
-    )
+vehicles: list[Vehicle] = client.vehicles(
+    make="Mercedes-Benz",
+    model="A-Klasse",
+    filter_vehicles_by_profile=True # Optional
+)
 print(vehicles)
 ```
 If `filter_vehicles_by_profile` is true and logged in, only the leasable vehicles will be returned. If `filter_vehicles_by_profile` is false or not logged in, all available vehicles will be returned. 
